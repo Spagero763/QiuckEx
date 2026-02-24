@@ -1,19 +1,38 @@
-export enum NotificationEvent {
-  PaymentReceived = 'payment.received',
+
+/**
+ * Supported notification event types.
+ * Extend this enum to add new notification flows.
+ */
+export enum NotificationEventType {
+  LinkCreated = 'link.created',
+  PaymentDetected = 'payment.detected',
   UsernameClaimed = 'username.claimed',
 }
 
-export class PaymentReceivedEvent {
-  constructor(
-    public readonly txHash: string,
-    public readonly amount: string,
-    public readonly sender: string,
-  ) {}
+/**
+ * Payload for link creation notifications.
+ */
+export interface LinkCreatedPayload {
+  linkId: string;
+  creator: string;
+  timestamp: string;
 }
 
-export class UsernameClaimedEvent {
-  constructor(
-    public readonly username: string,
-    public readonly publicKey: string,
-  ) {}
+/**
+ * Payload for payment detected notifications.
+ */
+export interface PaymentDetectedPayload {
+  txHash: string;
+  amount: string;
+  sender: string;
+  timestamp: string;
+}
+
+/**
+ * Payload for username claimed notifications.
+ */
+export interface UsernameClaimedPayload {
+  username: string;
+  publicKey: string;
+  timestamp: string;
 }

@@ -1,21 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EventEmitterModule, EventEmitter2 } from '@nestjs/event-emitter';
-import { NotificationService } from './notification.service';
+import { NotificationService, LogNotificationTransport } from './notification.service';
+import { NotificationEventType } from '../events/notification.events';
 
-// Helper to wait for async events
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 describe('NotificationService (Event Hook Verification)', () => {
   let service: NotificationService;
   let eventEmitter: EventEmitter2;
   let module: TestingModule;
-
-  const mockLogger = {
-    log: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  };
+  let transport: LogNotificationTransport;
 
   beforeEach(async () => {
     module = await Test.createTestingModule({
@@ -23,19 +17,24 @@ describe('NotificationService (Event Hook Verification)', () => {
         wildcard: true,
         delimiter: '.',
       })],
-      providers: [NotificationService],
+      providers: [
+        {
+          provide: LogNotificationTransport,
+          useClass: LogNotificationTransport,
+        },
+        {
+          provide: NotificationService,
+          useFactory: (transport: LogNotificationTransport) => new NotificationService(transport),
+          inject: [LogNotificationTransport],
+        },
+      ],
     }).compile();
 
     await module.init();
-
     service = module.get<NotificationService>(NotificationService);
     eventEmitter = module.get<EventEmitter2>(EventEmitter2);
-
-
-    Object.defineProperty(service, 'logger', {
-      value: mockLogger,
-      writable: true,
-    });
+    transport = module.get<LogNotificationTransport>(LogNotificationTransport);
+    jest.spyOn(transport, 'send').mockResolvedValue(undefined);
   });
 
   afterEach(async () => {
@@ -43,11 +42,40 @@ describe('NotificationService (Event Hook Verification)', () => {
     await module.close();
   });
 
-  it('should react to "username.claimed" event and log intent', async () => {
+  it('should react to "link.created" event and call transport', async () => {
+    const payload = {
+      linkId: 'link123',
+      creator: 'user1',
+      timestamp: new Date().toISOString(),
+    };
+    await eventEmitter.emitAsync(NotificationEventType.LinkCreated, payload);
+    await sleep(100);
+    expect(transport.send).toHaveBeenCalledWith(NotificationEventType.LinkCreated, payload);
+  });
+
+  it('should react to "payment.detected" event and call transport', async () => {
+    const payload = {
+      txHash: '0xabc123',
+      amount: '100',
+      sender: 'G...sender',
+      timestamp: new Date().toISOString(),
+    };
+    await eventEmitter.emitAsync(NotificationEventType.PaymentDetected, payload);
+    await sleep(100);
+    expect(transport.send).toHaveBeenCalledWith(NotificationEventType.PaymentDetected, payload);
+  });
+
+  it('should react to "username.claimed" event and call transport', async () => {
     const payload = {
       username: 'test_user',
       publicKey: 'G...123',
       timestamp: new Date().toISOString(),
+    };
+    await eventEmitter.emitAsync(NotificationEventType.UsernameClaimed, payload);
+    await sleep(100);
+    expect(transport.send).toHaveBeenCalledWith(NotificationEventType.UsernameClaimed, payload);
+  });
+});
     };
 
     await eventEmitter.emitAsync('username.claimed', payload);
