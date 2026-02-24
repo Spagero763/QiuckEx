@@ -76,30 +76,3 @@ describe('NotificationService (Event Hook Verification)', () => {
     expect(transport.send).toHaveBeenCalledWith(NotificationEventType.UsernameClaimed, payload);
   });
 });
-    };
-
-    await eventEmitter.emitAsync('username.claimed', payload);
-    
-    await sleep(200);
-
-    expect(mockLogger.log).toHaveBeenCalledWith(
-      expect.stringContaining('Intent')
-    );
-  });
-
-  it('should react to "payment.received" event and log intent', async () => {
-    const payload = {
-      txHash: '0xabc123',
-      amount: '100',
-      sender: 'G...sender',
-    };
-
-    await eventEmitter.emitAsync('payment.received', payload);
-    
-    await sleep(200);
-
-    expect(mockLogger.log).toHaveBeenCalledWith(
-      expect.stringContaining('Intent')
-    );
-  });
-});

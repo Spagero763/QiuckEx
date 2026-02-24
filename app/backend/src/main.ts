@@ -15,6 +15,7 @@ import { LoggingInterceptor } from "./common/interceptors/logging.interceptor";
 import { AppModule } from "./app.module";
 import { AppConfigService } from "./config";
 import { GlobalHttpExceptionFilter } from "./common/filters/global-http-exception.filter";
+import { ThrottlerExceptionFilter } from './common/filters/throttler-exception.filter';
 import { mapValidationErrors } from "./common/utils/validation-error.mapper";
 
 async function bootstrap() {
@@ -74,7 +75,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new LoggingInterceptor());
   
 
-  app.useGlobalFilters(new GlobalHttpExceptionFilter(configService));
+  app.useGlobalFilters(new GlobalHttpExceptionFilter(configService), new ThrottlerExceptionFilter());
 
   // Swagger setup
   const swaggerConfig = new DocumentBuilder()

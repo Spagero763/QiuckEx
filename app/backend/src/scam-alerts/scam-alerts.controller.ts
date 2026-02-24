@@ -3,6 +3,9 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBody } from "@nestjs/swagger";
 import { ScamAlertsService } from "./scam-alerts.service";
 import { ScanLinkDto } from "../dto";
 import { ScanResultDto } from "./dto/scan-result.dto";
+import { UseGuards } from "@nestjs/common";
+import { APIKeyGuard } from "../common/guards/api-key.guard";
+import { CustomThrottlerGuard } from "../common/guards/custom-throttler.guard";
 
 @ApiTags("scam-alerts")
 @Controller("links")
@@ -10,6 +13,7 @@ export class ScamAlertsController {
   constructor(private readonly scamAlertsService: ScamAlertsService) {}
 
   @Post("scan")
+  @UseGuards(APIKeyGuard, CustomThrottlerGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: "Scan a payment link for scam indicators",

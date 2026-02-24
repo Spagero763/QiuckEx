@@ -1,12 +1,19 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { ScamAlertsController } from "./scam-alerts.controller";
 import { ScamAlertsService } from "./scam-alerts.service";
+import { ThrottlerModule } from '@nestjs/throttler';
 
 describe("ScamAlertsController", () => {
 	let controller: ScamAlertsController;
 
 	beforeEach(async () => {
 		const module: TestingModule = await Test.createTestingModule({
+			imports: [ThrottlerModule.forRoot([
+				{
+					ttl: 60000,
+					limit: 10,
+				},
+			])],
 			controllers: [ScamAlertsController],
 			providers: [ScamAlertsService],
 		}).compile();

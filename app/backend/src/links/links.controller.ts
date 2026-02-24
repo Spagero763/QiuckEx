@@ -5,11 +5,14 @@ import {
   HttpCode,
   HttpStatus,
   BadRequestException,
+  UseGuards,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from "@nestjs/swagger";
 import { LinksService } from "./links.service";
 import { LinkMetadataRequestDto, LinkMetadataResponseDto } from "../dto";
 import { LinkValidationError } from "./errors";
+import { APIKeyGuard } from "../common/guards/api-key.guard";
+import { CustomThrottlerGuard } from "../common/guards/custom-throttler.guard";
 
 @ApiTags("links")
 @Controller("links")
@@ -17,6 +20,7 @@ export class LinksController {
   constructor(private readonly linksService: LinksService) {}
 
   @Post("metadata")
+  @UseGuards(APIKeyGuard, CustomThrottlerGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: "Generate canonical link metadata",
